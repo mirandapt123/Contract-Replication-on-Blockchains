@@ -1,0 +1,38 @@
+# Brownie configuration file
+# https://eth-brownie.readthedocs.io/en/stable/config.html
+networks:
+        # any settings given here will replace the defaults
+        development:
+            host: http://127.0.0.1
+            persist: false
+            reverting_tx_gas_limit: 6721975
+            test_rpc:
+                cmd: ganache-cli
+                port: 8545
+                gas_limit: 672197500
+                accounts: 10
+                evm_version: istanbul
+                mnemonic: brownie
+        kovan:
+            host: https://kovan.infura.io/v3/$WEB3_INFURA_PROJECT_ID
+        rinkeby:
+            host: https://rinkeby.infura.io/v3/$WEB3_INFURA_PROJECT_ID
+        ropsten:
+            host: https://ropsten.infura.io/v3/$WEB3_INFURA_PROJECT_ID
+wallets:
+  from_key: ${PRIVATE_KEY}
+  from_mnemonic: ${MNEMONIC}    
+dotenv: .env            
+pytest:
+    # these settings replace the defaults when running pytest
+    gas_limit: 672197500
+    default_contract_owner: true
+    reverting_tx_gas_limit: 672197500
+    revert_traceback: true
+compiler:
+    evm_version: null
+    minify_source: false
+    solc:
+        version: null
+        optimize: true
+        runs: 200                   
