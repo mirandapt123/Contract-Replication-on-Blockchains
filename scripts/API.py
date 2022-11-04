@@ -29,6 +29,22 @@ p.load_config()
 from brownie.project.Tese import TxtDocShare, TokenErc20, ProxyErc20
 import brownie.network as network
 
+#Blockchains: This solution have n = 3
+inputBlockchain1 = "goerli"
+inputBlockchain2 = "goerli"
+inputBlockchain3 = "goerli"
+#inputBlockchain1 = "kovan"
+#inputBlockchain2 = "goerli"
+#inputBlockchain3 = "rinkeby"
+
+#Blockchains names:
+nameBlockchain1 = "Goerli"
+nameBlockchain2 = "Goerli"
+nameBlockchain3 = "Goerli"
+#nameBlockchain1 = "Kovan"
+#nameBlockchain2 = "Goerli"
+#nameBlockchain3 = "Rinkeby"
+
 
 def getMatrix(file, type):
     substring = "0x"
@@ -96,21 +112,21 @@ def getJsonContract():
     return contracts;
 
 
-def addFile(Matrix, docname, text, addressK, addressG, addressR):
+def addFile(Matrix, docname, text, address1, address2, address3):
     if docname and text:
-        fileIDKovan = asyncio.run(addFileBlockChain(Matrix[0][1], "kovan", docname, text, addressK))
-        if fileIDKovan > -1:
-            fileIDGoerli = asyncio.run(addFileBlockChain(Matrix[1][1], "goerli", docname, text, addressG))
-            if fileIDGoerli > -1:
-                fileIDRinkeby = asyncio.run(addFileBlockChain(Matrix[2][1], "rinkeby", docname, text, addressR))
-                if fileIDRinkeby > -1:
+        fileID1 = asyncio.run(addFileBlockChain(Matrix[0][1], inputBlockchain1, docname, text, address1))
+        if fileID1 > -1:
+            fileID2 = asyncio.run(addFileBlockChain(Matrix[1][1], inputBlockchain2, docname, text, address2))
+            if fileID2 > -1:
+                fileID3 = asyncio.run(addFileBlockChain(Matrix[2][1], inputBlockchain3, docname, text, address3))
+                if fileID3 > -1:
                     return 1
                 else:
-                    fileReverter(Matrix[0][1], "kovan", fileIDKovan, addressK)
-                    fileReverter(Matrix[1][1], "goerli", fileIDGoerli, addressG)
+                    fileReverter(Matrix[0][1], inputBlockchain1, fileID1, address1)
+                    fileReverter(Matrix[1][1], inputBlockchain2, fileID2, address2)
                     return -1
             else:
-                fileReverter(Matrix[0][1], "kovan", fileIDKovan, addressK)
+                fileReverter(Matrix[0][1], inputBlockchain1, fileID1, address1)
                 return -1
         else:
             return -1
@@ -121,12 +137,7 @@ def addFile(Matrix, docname, text, addressK, addressG, addressR):
 def fileReverter(address, testnet, id, addressacc):
     connectNetwork(testnet)
 
-    if testnet == "kovan":
-        dev = network.accounts.add(addressacc)
-    elif testnet == "goerli":
-        dev = network.accounts.add(addressacc)
-    else:
-        dev = network.accounts.add(addressacc)
+    dev = network.accounts.add(addressacc)
 
     contract = TxtDocShare.at(address)
 
@@ -136,12 +147,7 @@ def fileReverter(address, testnet, id, addressacc):
 async def addFileBlockChain(address, testnet, filename, text, accAddress):
     connectNetwork(testnet)
 
-    if testnet == "kovan":
-        dev = network.accounts.add(accAddress)
-    elif testnet == "goerli":
-        dev = network.accounts.add(accAddress)
-    else:
-        dev = network.accounts.add(accAddress)
+    dev = network.accounts.add(accAddress)
 
     contract = TxtDocShare.at(address)
 
@@ -158,13 +164,13 @@ async def addFileBlockChain(address, testnet, filename, text, accAddress):
 
 
 def getNumFiles(Matrix):
-    connectNetwork('kovan')
+    connectNetwork(inputBlockchain1)
     numKovan = TxtDocShare.at(Matrix[0][1]).getNumDocs()
 
-    connectNetwork('goerli')
+    connectNetwork(inputBlockchain2)
     numGoerli = TxtDocShare.at(Matrix[1][1]).getNumDocs()
 
-    connectNetwork('rinkeby')
+    connectNetwork(inputBlockchain3)
     numRink = TxtDocShare.at(Matrix[2][1]).getNumDocs()
 
     if numKovan == numGoerli and numKovan == numRink:
@@ -198,26 +204,24 @@ def connectNetwork(testnet):
 
 def getLastDoc(idDoc, Matrix):
     #alterar para a versão
-    connectNetwork('kovan')
-    docKovan = TxtDocShare.at(Matrix[0][1]).getDoc(idDoc)
+    connectNetwork(inputBlockchain1)
+    doc1 = TxtDocShare.at(Matrix[0][1]).getDoc(idDoc)
 
-    connectNetwork('goerli')
-    docGoerli = TxtDocShare.at(Matrix[1][1]).getDoc(idDoc)
+    connectNetwork(inputBlockchain2)
+    doc2 = TxtDocShare.at(Matrix[1][1]).getDoc(idDoc)
 
-    connectNetwork('rinkeby')
-    docRink = TxtDocShare.at(Matrix[2][1]).getDoc(idDoc)
+    connectNetwork(inputBlockchain3)
+    doc3 = TxtDocShare.at(Matrix[2][1]).getDoc(idDoc)
 
-    lastupd = [datetime.fromtimestamp(docGoerli[6]), datetime.fromtimestamp(docKovan[6]),
-               datetime.fromtimestamp(docRink[6])]
-    lastupd.sort(reverse=True)
+    lastversion = [doc1[2], doc2[2], doc3[2]]
+    lastversion.sort(reverse=True)
 
-    if lastupd[0] == datetime.fromtimestamp(docKovan[6]):
-        return [docKovan[0], docKovan[1], docKovan[2], docKovan[3], docKovan[4], docKovan[5], docKovan[6], "Kovan"]
-    elif lastupd[0] == datetime.fromtimestamp(docGoerli[6]):
-        return [docGoerli[0], docGoerli[1], docGoerli[2], docGoerli[3], docGoerli[4], docGoerli[5], docGoerli[6],
-                "Goerli"]
+    if lastversion[0] == doc1[2]:
+        return [doc1[0], doc1[1], doc1[2], doc1[3], doc1[4], doc1[5], doc1[6], nameBlockchain1]
+    elif lastversion[0] == doc2[2]:
+        return [doc2[0], doc2[1], doc2[2], doc2[3], doc2[4], doc2[5], doc2[6], nameBlockchain2]
     else:
-        return [docRink[0], docRink[1], docRink[2], docRink[3], docRink[4], docRink[5], docRink[6], "Rinkeby"]
+        return [doc3[0], doc3[1], doc3[2], doc3[3], doc3[4], doc3[5], doc3[6], nameBlockchain3]
 
 
 def getSingleFile(Matrix, idDoc):
@@ -232,7 +236,7 @@ def getSingleFile(Matrix, idDoc):
     return doc
 
 
-def editDocBlockchain(Matrix, idDoc, docname, text, addressK, addressG, addressR, currentdocname, currenttext, version):
+def editDocBlockchain(Matrix, idDoc, docname, text, address1, address2, address3, currentdocname, currenttext, version):
     if not docname and not text:
         return -1
 
@@ -242,58 +246,58 @@ def editDocBlockchain(Matrix, idDoc, docname, text, addressK, addressG, addressR
     if not text:
         text = currenttext
     #n = número total e f = total falha
-    statusK = -1
-    statusR = -1
-    statusG = -1
+    status1 = -1
+    status2 = -1
+    status3 = -1
     edit = -1
 
-    while (statusK == -1 and statusR == -1) or (statusR == -1 and statusG == -1) or (statusK == -1 and statusG == -1):
-        if statusK == -1:
-            connectNetwork('kovan')
-            dev = network.accounts.add(addressK)
+    while (status1 == -1 and status3 == -1) or (status3 == -1 and status2 == -1) or (status1 == -1 and status2 == -1):
+        if status1 == -1:
+            connectNetwork(inputBlockchain1)
+            dev = network.accounts.add(address1)
             result = TxtDocShare.at(Matrix[0][1]).editDoc(idDoc, docname, text, version, {'from': dev})
             result = int(result.status)
 
             if result == 1:
-                statusK = 1
+                status1 = 1
             else:
-                statusK = -1
+                status1 = -1
 
-            if statusK != -1:
+            if status1 != -1:
                 edit = edit + 1
 
-        if statusG== -1:
-            connectNetwork('goerli')
-            dev = network.accounts.add(addressG)
+        if status2 == -1:
+            connectNetwork(inputBlockchain2)
+            dev = network.accounts.add(address2)
             result = TxtDocShare.at(Matrix[1][1]).editDoc(idDoc, docname, text, version, {'from': dev})
             result = int(result.status)
 
             if result == 1:
-                statusG = 1
+                status2 = 1
             else:
-                statusG = -1
+                status2 = -1
 
-            if statusG != -1:
+            if status2 != -1:
                 edit = edit + 1
 
-        if statusR == -1:
-            connectNetwork('rinkeby')
-            dev = network.accounts.add(addressR)
+        if status3 == -1:
+            connectNetwork(inputBlockchain3)
+            dev = network.accounts.add(address3)
             result = TxtDocShare.at(Matrix[2][1]).editDoc(idDoc, docname, text, version, {'from': dev})
             result = int(result.status)
 
             if result == 1:
-                statusR = result
+                status3 = result
             else:
-                statusR = -1
+                status3 = -1
 
-            if statusR != -1:
+            if status3 != -1:
                 edit = edit + 1
 
         return edit
 
 
-def editFile(Matrix, idDoc, docname, text, addressK, addressG, addressR):
+def editFile(Matrix, idDoc, docname, text, address1, address2, address3):
     if idDoc < 0:
         return -2
 
@@ -302,7 +306,7 @@ def editFile(Matrix, idDoc, docname, text, addressK, addressG, addressR):
     if not str(doc[0]):
         return -2
 
-    result = editDocBlockchain(Matrix, idDoc, docname, text, addressK, addressG, addressR, doc[0], doc[1], int(doc[2]))
+    result = editDocBlockchain(Matrix, idDoc, docname, text, address1, address2, address3, doc[0], doc[1], int(doc[2]))
 
     if result < 1:
         return -1
@@ -321,7 +325,7 @@ def hasItem(matrix, type):
     return count
 
 
-def publishcontract(ncontract, contractname, addressK, addressG, addressR, symbol = "", total = ""):
+def publishcontract(ncontract, contractname, address1, address2, address3, symbol = "", total = ""):
     contractarr = glob.glob("../contracts/*.sol")
     contractarr.remove("../contracts/proxyErc20.sol")
 
@@ -330,8 +334,8 @@ def publishcontract(ncontract, contractname, addressK, addressG, addressR, symbo
             if hasname(contractname, "1") == -1:
                 return -1
 
-            publishbrownie(contractarr[int(ncontract) - 1], contractname, "1", addressK, addressG,
-                           addressR)
+            publishbrownie(contractarr[int(ncontract) - 1], contractname, "1", address1, address2,
+                           address3)
             return 1
         elif contractarr[int(ncontract) - 1].find("../contracts/tokenErc20.sol") != -1:
             if hasname(contractname, "2") == -1:
@@ -339,8 +343,8 @@ def publishcontract(ncontract, contractname, addressK, addressG, addressR, symbo
             elif symbol == "" or total == "":
                 return -1
 
-            publishbrownie(contractarr[int(ncontract) - 1], contractname, "2", addressK, addressG,
-                           addressR, symbol, total)
+            publishbrownie(contractarr[int(ncontract) - 1], contractname, "2", address1, address2,
+                           address3, symbol, total)
 
 
             return 1
@@ -369,17 +373,17 @@ def getGuid():
     return strguid
 
 
-def publishbrownie(name, contract, type, addressK, addressG, addressR, symbol = "", total = ""):
+def publishbrownie(name, contract, type, address1, address2, address3, symbol = "", total = ""):
     try:
         strguid = getGuid()
-        add = asyncio.run(subpublishbrownie("kovan", contract, type, addressK, symbol, total))
+        add = asyncio.run(subpublishbrownie(inputBlockchain1, contract, type, address1, symbol, total))
 
         if len(add) == 42:
             writecontractfile(contract, add, strguid, type)
-            add = asyncio.run(subpublishbrownie("goerli", contract, type, addressG, symbol, total))
+            add = asyncio.run(subpublishbrownie(inputBlockchain2, contract, type, address2, symbol, total))
             if len(add) == 42:
                 writecontractfile(contract, add, strguid, type)
-                add = asyncio.run(subpublishbrownie("rinkeby", contract, type, addressR, symbol, total))
+                add = asyncio.run(subpublishbrownie(inputBlockchain3, contract, type, address3, symbol, total))
                 if len(add) == 42:
                     writecontractfile(contract, add, strguid, type)
                     return 1
@@ -400,7 +404,7 @@ async def subpublishbrownie(testnet, name, type, address, symbol = "", total = "
 
         dev = network.accounts.add(address)
 
-        network.gas_limit(8599999)
+        #network.gas_limit(8599999)
 
         if type == "1":
             result = TxtDocShare.deploy({'from': dev})
@@ -444,23 +448,23 @@ def writecontractfile(name, add, guid, type):
     file.close()
 
 
-def getbalance(addrK, addrG, addrR):
+def getbalance(addr1, addr2, addr3):
     try:
         ether = []
-        connectNetwork("kovan")
-        network.accounts.add(addrK)
+        connectNetwork(inputBlockchain1)
+        network.accounts.add(addr1)
 
         balance = network.accounts[0].balance()
         ether.append(network.web3.fromWei(balance, 'ether'))
 
-        connectNetwork("goerli")
-        network.accounts.add(addrG)
+        connectNetwork(inputBlockchain2)
+        network.accounts.add(addr2)
 
         balance = network.accounts[0].balance()
         ether.append(network.web3.fromWei(balance, 'ether'))
 
-        connectNetwork("rinkeby")
-        network.accounts.add(addrR)
+        connectNetwork(inputBlockchain3)
+        network.accounts.add(addr3)
 
         balance = network.accounts[0].balance()
         ether.append(network.web3.fromWei(balance, 'ether'))
@@ -497,146 +501,146 @@ def hasname(name, type):
 
 
 def getDetail(Matrix):
-    connectNetwork('kovan')
-    detailTokenKovan = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain1)
+    detailToken1 = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
 
-    connectNetwork('goerli')
-    detailTokenGoerli = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain2)
+    detailToken2 = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
 
-    connectNetwork('rinkeby')
-    detailTokenRink = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain3)
+    detailToken3 = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
 
-    version = [detailTokenKovan[3], detailTokenGoerli[3], detailTokenRink[3]]
+    version = [detailToken1[3], detailToken2[3], detailToken3[3]]
     version.sort(reverse=True)
 
-    if version[0] == detailTokenKovan[3]:
-        return [detailTokenKovan[0], detailTokenKovan[1], detailTokenKovan[2], detailTokenKovan[3], detailTokenKovan[4], detailTokenKovan[5], detailTokenKovan[6],
-                detailTokenKovan[7], "Kovan"]
-    elif version[0] == detailTokenGoerli[3]:
-        return [detailTokenGoerli[0], detailTokenGoerli[1], detailTokenGoerli[2], detailTokenGoerli[3], detailTokenGoerli[4], detailTokenGoerli[5], detailTokenGoerli[6],
-                detailTokenGoerli[7], "Goerli"]
+    if version[0] == detailToken1[3]:
+        return [detailToken1[0], detailToken1[1], detailToken1[2], detailToken1[3], detailToken1[4], detailToken1[5], detailToken1[6],
+                detailToken1[7], nameBlockchain1]
+    elif version[0] == detailToken2[3]:
+        return [detailToken2[0], detailToken2[1], detailToken2[2], detailToken2[3], detailToken2[4], detailToken2[5], detailToken2[6],
+                detailToken2[7], nameBlockchain2]
     else:
-        return [detailTokenRink[0], detailTokenRink[1], detailTokenRink[2], detailTokenRink[3], detailTokenRink[4], detailTokenRink[5], detailTokenRink[6],
-                detailTokenRink[7], "Rinkeby"]
+        return [detailToken3[0], detailToken3[1], detailToken3[2], detailToken3[3], detailToken3[4], detailToken3[5], detailToken3[6],
+                detailToken3[7], nameBlockchain3]
 
 
 def getBalanceOfToken(Matrix):
-    connectNetwork('kovan')
-    detailTokenKovan = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain1)
+    detailToken1 = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
 
-    connectNetwork('goerli')
-    detailTokenGoerli = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain2)
+    detailToken2 = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
 
-    connectNetwork('rinkeby')
-    detailTokenRink = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain3)
+    detailToken3 = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
 
-    version = [detailTokenKovan[3], detailTokenGoerli[3], detailTokenRink[3]]
+    version = [detailToken1[3], detailToken2[3], detailToken3[3]]
     version.sort(reverse=True)
 
-    if version[0] == detailTokenKovan[3]:
-        balanceList = getLastBalances(Matrix, "kovan", 0)
-        testnetversion = "Kovan"
-    elif version[0] == detailTokenGoerli[3]:
-        balanceList = getLastBalances(Matrix, "goerli", 1)
-        testnetversion = "Goerli"
+    if version[0] == detailToken1[3]:
+        balanceList = getLastBalances(Matrix, inputBlockchain1, 0)
+        blockchainversion = nameBlockchain1
+    elif version[0] == detailToken2[3]:
+        balanceList = getLastBalances(Matrix, inputBlockchain2, 1)
+        blockchainversion = nameBlockchain2
     else:
-        balanceList = getLastBalances(Matrix, "rinkeby", 2)
-        testnetversion = "Rinkeby"
+        balanceList = getLastBalances(Matrix, inputBlockchain3, 2)
+        blockchainversion = nameBlockchain3
 
-    balanceList.append(testnetversion)
+    balanceList.append(blockchainversion)
 
     return balanceList
 
 
-def getBalanceOfTokenEsp(Matrix, addressK, addressG, addressR, myadd):
-    connectNetwork('kovan')
-    detailTokenKovan = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
+def getBalanceOfTokenEsp(Matrix, address1, address2, address3, myadd):
+    connectNetwork(inputBlockchain1)
+    detailToken1 = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
 
-    connectNetwork('goerli')
-    detailTokenGoerli = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain2)
+    detailToken2 = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
 
-    connectNetwork('rinkeby')
-    detailTokenRink = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain3)
+    detailToken3 = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
 
-    version = [detailTokenKovan[3], detailTokenGoerli[3], detailTokenRink[3]]
+    version = [detailToken1[3], detailToken2[3], detailToken3[3]]
     version.sort(reverse=True)
 
-    if version[0] == detailTokenKovan[3]:
-        balanceList = getLastBalancesEsp(Matrix, "kovan", 0, addressK, myadd)
-        testnetversion = "Kovan"
-    elif version[0] == detailTokenGoerli[3]:
-        balanceList = getLastBalancesEsp(Matrix, "goerli", 1, addressG, myadd)
-        testnetversion = "Goerli"
+    if version[0] == detailToken1[3]:
+        balanceList = getLastBalancesEsp(Matrix, inputBlockchain1, 0, address1, myadd)
+        blockchainversion = nameBlockchain1
+    elif version[0] == detailToken2[3]:
+        balanceList = getLastBalancesEsp(Matrix, inputBlockchain2, 1, address2, myadd)
+        blockchainversion = nameBlockchain2
     else:
-        balanceList = getLastBalancesEsp(Matrix, "rinkeby", 2, addressR, myadd)
-        testnetversion = "Rinkeby"
+        balanceList = getLastBalancesEsp(Matrix, inputBlockchain3, 2, address3, myadd)
+        blockchainversion = nameBlockchain3
 
     array = [0 for i in range(3)]
     array[0] = balanceList[0]
     array[1] = balanceList[1]
-    array[2] = testnetversion
+    array[2] = blockchainversion
 
     return array
 
 
 def getAllowanceOfToken(Matrix):
-    connectNetwork('kovan')
-    detailTokenKovan = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain1)
+    detailToken1 = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
 
-    connectNetwork('goerli')
-    detailTokenGoerli = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain2)
+    detailToken2 = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
 
-    connectNetwork('rinkeby')
-    detailTokenRink = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain3)
+    detailToken3 = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
 
-    version = [detailTokenKovan[3], detailTokenGoerli[3], detailTokenRink[3]]
+    version = [detailToken1[3], detailToken2[3], detailToken3[3]]
     version.sort(reverse=True)
 
-    if version[0] == detailTokenKovan[3]:
-        allowancelist = getLastAllow(Matrix, "kovan", 0)
-        testnetversion = "Kovan"
-    elif version[0] == detailTokenGoerli[3]:
-        allowancelist = getLastAllow(Matrix, "goerli", 1)
-        testnetversion = "Goerli"
+    if version[0] == detailToken1[3]:
+        allowancelist = getLastAllow(Matrix, inputBlockchain1, 0)
+        testnetversion = nameBlockchain1
+    elif version[0] == detailToken2[3]:
+        allowancelist = getLastAllow(Matrix, inputBlockchain2, 1)
+        testnetversion = nameBlockchain2
     else:
-        allowancelist = getLastAllow(Matrix, "rinkeby", 2)
-        testnetversion = "Rinkeby"
+        allowancelist = getLastAllow(Matrix, inputBlockchain3, 2)
+        testnetversion = nameBlockchain3
 
     allowancelist.append(testnetversion)
 
     return allowancelist
 
 
-def normalizeTokenBlockChain(Matrix, addressK, addressG, addressR, isBuy = False, blockchain = "", numOfTokens = ""):
-    connectNetwork('kovan')
-    detailTokenKovan = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
+def normalizeTokenBlockChain(Matrix, address1, address2, address3, isBuy = False, blockchain = "", numOfTokens = ""):
+    connectNetwork(inputBlockchain1)
+    detailToken1 = ProxyErc20.at(Matrix[0][1]).getNameSymbolSupply()
 
-    connectNetwork('goerli')
-    detailTokenGoerli = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain2)
+    detailToken2 = ProxyErc20.at(Matrix[1][1]).getNameSymbolSupply()
 
-    connectNetwork('rinkeby')
-    detailTokenRink = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
+    connectNetwork(inputBlockchain3)
+    detailToken3 = ProxyErc20.at(Matrix[2][1]).getNameSymbolSupply()
 
-    version = [detailTokenKovan[3], detailTokenGoerli[3], detailTokenRink[3]]
+    version = [detailToken1[3], detailToken2[3], detailToken3[3]]
     version.sort(reverse=True)
 
     if (version[0] == version[1]) and isBuy is False:
         return version[0]
 
     if blockchain == "":
-        if version[0] == detailTokenKovan[3]:
-            result = normalizeBalanceAllowance(Matrix, "goerli", "rinkeby", addressG, addressR, "kovan", 0)
-        elif version[0] == detailTokenGoerli[3]:
-            result = normalizeBalanceAllowance(Matrix, "kovan", "rinkeby",  addressK, addressR, "goerli", 1)
+        if version[0] == detailToken1[3]:
+            result = normalizeBalanceAllowance(Matrix, inputBlockchain2, inputBlockchain3, address2, address3, inputBlockchain1, 0)
+        elif version[0] == detailToken2[3]:
+            result = normalizeBalanceAllowance(Matrix, inputBlockchain1, inputBlockchain3,  address1, address3, inputBlockchain2, 1)
         else:
-            result = normalizeBalanceAllowance(Matrix, "goerli", "kovan",  addressG, addressK, "rinkeby", 2)
+            result = normalizeBalanceAllowance(Matrix, inputBlockchain2, inputBlockchain1,  address2, address1, inputBlockchain3, 2)
     else:
-        if blockchain == "Kovan":
-            result = normalizeBuyToken(Matrix, "kovan", addressK, version[0], 0, 1, numOfTokens, "goerli")
-        elif blockchain == "Goerli":
-            result = normalizeBuyToken(Matrix, "goerli", addressG, version[0], 1, 2, numOfTokens, "rinkeby")
+        if blockchain == nameBlockchain1:
+            result = normalizeBuyToken(Matrix, inputBlockchain1, address1, version[0], 0, 1, numOfTokens, inputBlockchain2)
+        elif blockchain == nameBlockchain2:
+            result = normalizeBuyToken(Matrix, inputBlockchain2, address2, version[0], 1, 2, numOfTokens, inputBlockchain3)
         else:
-            result = normalizeBuyToken(Matrix, "rinkeby", addressR, version[0], 2, 0, numOfTokens, "kovan")
+            result = normalizeBuyToken(Matrix, inputBlockchain3, address3, version[0], 2, 0, numOfTokens, inputBlockchain1)
 
     if result == -1:
         return result
@@ -663,9 +667,9 @@ def normalizeBalanceAllowance(Matrix,testnet1, testnet2, address1, address2, tes
     while (n - f) > total:
         if n1 == -1:
             connectNetwork(testnet1)
-            if testnet1 == "kovan":
+            if testnet1 == inputBlockchain1:
                 num = 0
-            elif testnet1 == "goerli":
+            elif testnet1 == inputBlockchain2:
                 num = 1
             else:
                 num = 2
@@ -680,9 +684,9 @@ def normalizeBalanceAllowance(Matrix,testnet1, testnet2, address1, address2, tes
 
         if n2 == -1:
             connectNetwork(testnet2)
-            if testnet2 == "kovan":
+            if testnet2 == inputBlockchain1:
                 num = 0
-            elif testnet2 == "goerli":
+            elif testnet2 == inputBlockchain2:
                 num = 1
             else:
                 num = 2
@@ -795,7 +799,7 @@ def transferTokenOwnerBlockchain(Matrix, addressK, addressG, addressR, receiverK
 
     while (n - f) > total:
         if n1 == -1:
-            connectNetwork('kovan')
+            connectNetwork(inputBlockchain1)
             dev = network.accounts.add(addressK)
             result = ProxyErc20.at(Matrix[0][1]).transferErc20(receiverK, numTokens, version, receiverK, True, {'from': dev})
             result = int(result.status)
@@ -807,7 +811,7 @@ def transferTokenOwnerBlockchain(Matrix, addressK, addressG, addressR, receiverK
                 n1 = -1
 
         if n2 == -1:
-            connectNetwork('goerli')
+            connectNetwork(inputBlockchain2)
             dev = network.accounts.add(addressG)
             result = ProxyErc20.at(Matrix[1][1]).transferErc20(receiverG, numTokens, version, receiverG, True, {'from': dev})
             result = int(result.status)
@@ -819,7 +823,7 @@ def transferTokenOwnerBlockchain(Matrix, addressK, addressG, addressR, receiverK
                 n2 = -1
 
         if n3 == -1:
-            connectNetwork('rinkeby')
+            connectNetwork(inputBlockchain3)
             dev = network.accounts.add(addressR)
             result = ProxyErc20.at(Matrix[2][1]).transferErc20(receiverR, numTokens, version, receiverR, True, {'from': dev})
             result = int(result.status)
@@ -850,7 +854,7 @@ def transferFromTokenOwnerBlockchain(Matrix, addressK, addressG, addressR, owner
 
     while (n - f) > total:
         if n1 == -1:
-            connectNetwork('kovan')
+            connectNetwork(inputBlockchain1)
             dev = network.accounts.add(addressK)
             result = ProxyErc20.at(Matrix[0][1]).transferFromErc20(ownerK, receiverK, numTokens, version, {'from': dev})
             result = int(result.status)
@@ -862,7 +866,7 @@ def transferFromTokenOwnerBlockchain(Matrix, addressK, addressG, addressR, owner
                 n1 = -1
 
         if n2 == -1:
-            connectNetwork('goerli')
+            connectNetwork(inputBlockchain2)
             dev = network.accounts.add(addressG)
             result = ProxyErc20.at(Matrix[1][1]).transferFromErc20(ownerG, receiverG, numTokens, version, {'from': dev})
             result = int(result.status)
@@ -874,7 +878,7 @@ def transferFromTokenOwnerBlockchain(Matrix, addressK, addressG, addressR, owner
                 n2 = -1
 
         if n3 == -1:
-            connectNetwork('rinkeby')
+            connectNetwork(inputBlockchain3)
             dev = network.accounts.add(addressR)
             result = ProxyErc20.at(Matrix[2][1]).transferFromErc20(ownerR, receiverR, numTokens, version, {'from': dev})
             result = int(result.status)
@@ -904,7 +908,7 @@ def approveBlockchain(Matrix, addressK, addressG, addressR, approveK, approveG, 
 
     while (n - f) > total:
         if n1 == -1:
-            connectNetwork('kovan')
+            connectNetwork(inputBlockchain1)
             dev = network.accounts.add(addressK)
             result = ProxyErc20.at(Matrix[0][1]).approve(approveK, numTokens, version, {'from': dev})
             result = int(result.status)
@@ -916,7 +920,7 @@ def approveBlockchain(Matrix, addressK, addressG, addressR, approveK, approveG, 
                 n1 = -1
 
         if n2 == -1:
-            connectNetwork('goerli')
+            connectNetwork(inputBlockchain2)
             dev = network.accounts.add(addressG)
             result = ProxyErc20.at(Matrix[1][1]).approve(approveG, numTokens, version, {'from': dev})
             result = int(result.status)
@@ -928,7 +932,7 @@ def approveBlockchain(Matrix, addressK, addressG, addressR, approveK, approveG, 
                 n2 = -1
 
         if n3 == -1:
-            connectNetwork('rinkeby')
+            connectNetwork(inputBlockchain3)
             dev = network.accounts.add(addressR)
             result = ProxyErc20.at(Matrix[2][1]).approve(approveR, numTokens, version, {'from': dev})
             result = int(result.status)
@@ -958,7 +962,7 @@ def startSellBlockchain(Matrix, addressK, addressG, addressR, priceK, priceG, pr
 
     while (n - f) > total:
         if n1 == -1:
-            connectNetwork('kovan')
+            connectNetwork(inputBlockchain1)
             dev = network.accounts.add(addressK)
             kovanbool = ProxyErc20.at(Matrix[0][1]).setSellTokens.call(priceK, numTokens, version, {'from': dev})
             result = ProxyErc20.at(Matrix[0][1]).setSellTokens(priceK, numTokens, version, {'from': dev})
@@ -971,7 +975,7 @@ def startSellBlockchain(Matrix, addressK, addressG, addressR, priceK, priceG, pr
                 n1 = -1
 
         if n2 == -1:
-            connectNetwork('goerli')
+            connectNetwork(inputBlockchain2)
             dev = network.accounts.add(addressG)
             goerlibool = ProxyErc20.at(Matrix[1][1]).setSellTokens.call(priceG, numTokens, version, {'from': dev})
             result = ProxyErc20.at(Matrix[1][1]).setSellTokens(priceG, numTokens, version, {'from': dev})
@@ -984,7 +988,7 @@ def startSellBlockchain(Matrix, addressK, addressG, addressR, priceK, priceG, pr
                 n2 = -1
 
         if n3 == -1:
-            connectNetwork('rinkeby')
+            connectNetwork(inputBlockchain3)
             dev = network.accounts.add(addressR)
             rinkbool = ProxyErc20.at(Matrix[2][1]).setSellTokens.call(priceR, numTokens, version, {'from': dev})
             result = ProxyErc20.at(Matrix[2][1]).setSellTokens(priceR, numTokens, version, {'from': dev})
@@ -1003,44 +1007,44 @@ def startSellBlockchain(Matrix, addressK, addressG, addressR, priceK, priceG, pr
 
 
 def getDetailSell(Matrix):
-    connectNetwork('kovan')
-    detailSellKovan = ProxyErc20.at(Matrix[0][1]).getSellDetails()
+    connectNetwork(inputBlockchain1)
+    detailSell1 = ProxyErc20.at(Matrix[0][1]).getSellDetails()
 
-    connectNetwork('goerli')
-    detailSellGoerli = ProxyErc20.at(Matrix[1][1]).getSellDetails()
+    connectNetwork(inputBlockchain2)
+    detailSell2 = ProxyErc20.at(Matrix[1][1]).getSellDetails()
 
-    connectNetwork('rinkeby')
-    detailSellRink = ProxyErc20.at(Matrix[2][1]).getSellDetails()
+    connectNetwork(inputBlockchain3)
+    detailSell3 = ProxyErc20.at(Matrix[2][1]).getSellDetails()
 
-    version = [detailSellKovan[3], detailSellGoerli[3], detailSellRink[3]]
+    version = [detailSell1[3], detailSell2[3], detailSell3[3]]
     version.sort(reverse=True)
 
 
-    if version[0] == detailSellKovan[3]:
-        if detailSellKovan[0] == "0x0000000000000000000000000000000000000000":
+    if version[0] == detailSell1[3]:
+        if detailSell1[0] == "0x0000000000000000000000000000000000000000":
             return -1
-        return [detailSellKovan[0], detailSellKovan[1], detailSellKovan[2], detailSellKovan[3], detailSellKovan[4], detailSellKovan[5], detailSellKovan[6],
-                detailSellKovan[7], "Kovan"]
-    elif version[0] == detailSellGoerli[3]:
-        if detailSellGoerli[0] == "0x0000000000000000000000000000000000000000":
+        return [detailSell1[0], detailSell1[1], detailSell1[2], detailSell1[3], detailSell1[4], detailSell1[5], detailSell1[6],
+                detailSell1[7], nameBlockchain1]
+    elif version[0] == detailSell2[3]:
+        if detailSell2[0] == "0x0000000000000000000000000000000000000000":
             return -1
-        return [detailSellGoerli[0], detailSellGoerli[1], detailSellGoerli[2], detailSellGoerli[3], detailSellGoerli[4], detailSellGoerli[5], detailSellGoerli[6],
-                detailSellGoerli[7], "Goerli"]
+        return [detailSell2[0], detailSell2[1], detailSell2[2], detailSell2[3], detailSell2[4], detailSell2[5], detailSell2[6],
+                detailSell2[7], nameBlockchain2]
     else:
-        if detailSellRink[0] == "0x0000000000000000000000000000000000000000":
+        if detailSell3[0] == "0x0000000000000000000000000000000000000000":
             return -1
-        return [detailSellRink[0], detailSellRink[1], detailSellRink[2], detailSellRink[3], detailSellRink[4], detailSellRink[5], detailSellRink[6],
-                detailSellRink[7], "Rinkeby"]
+        return [detailSell3[0], detailSell3[1], detailSell3[2], detailSell3[3], detailSell3[4], detailSell3[5], detailSell3[6],
+                detailSell3[7], nameBlockchain3]
 
 
 def getDetailSellExtended(Matrix):
-    connectNetwork('kovan')
+    connectNetwork(inputBlockchain1)
     detailSellKovan = ProxyErc20.at(Matrix[0][1]).getSellDetails()
 
-    connectNetwork('goerli')
+    connectNetwork(inputBlockchain2)
     detailSellGoerli = ProxyErc20.at(Matrix[1][1]).getSellDetails()
 
-    connectNetwork('rinkeby')
+    connectNetwork(inputBlockchain3)
     detailSellRink = ProxyErc20.at(Matrix[2][1]).getSellDetails()
 
     detailList = []
@@ -1071,15 +1075,15 @@ def getDetailSellExtended(Matrix):
 
 
 def getBalanceExceedsBlockchain(Matrix, addressK, addressG, addressR):
-    connectNetwork('kovan')
+    connectNetwork(inputBlockchain1)
     dev = network.accounts.add(addressK)
     balanceKovan = ProxyErc20.at(Matrix[0][1]).getMyBalanceExceed.call({'from': dev})
 
-    connectNetwork('goerli')
+    connectNetwork(inputBlockchain2)
     dev = network.accounts.add(addressG)
     balanceGoerli = ProxyErc20.at(Matrix[1][1]).getMyBalanceExceed.call({'from': dev})
 
-    connectNetwork('rinkeby')
+    connectNetwork(inputBlockchain3)
     dev = network.accounts.add(addressR)
     balanceRink = ProxyErc20.at(Matrix[2][1]).getMyBalanceExceed.call({'from': dev})
 
@@ -1110,7 +1114,7 @@ def BuyTokenBlockchain(Matrix, addressK, addressG, addressR, money):
     while (n - f) > total:
         randomBlock = random.choice(randomNumList)
         if n1 == -1 and total < 2 and randomBlock == 0:
-            connectNetwork('kovan')
+            connectNetwork(inputBlockchain1)
             dev = network.accounts.add(addressK)
             amount = math.ceil(arrayDetail[0][2] * money)
             result = dev.transfer(Matrix[0][1], amount)
@@ -1124,7 +1128,7 @@ def BuyTokenBlockchain(Matrix, addressK, addressG, addressR, money):
                 n1 = -1
 
         if n2 == -1 and total < 2 and randomBlock == 1:
-            connectNetwork('goerli')
+            connectNetwork(inputBlockchain2)
             dev = network.accounts.add(addressG)
             amount = math.ceil(arrayDetail[1][2] * money)
             result = dev.transfer(Matrix[1][1], amount)
@@ -1138,7 +1142,7 @@ def BuyTokenBlockchain(Matrix, addressK, addressG, addressR, money):
                 n2 = -1
 
         if n3 == -1 and total < 2 and randomBlock == 2:
-            connectNetwork('rinkeby')
+            connectNetwork(inputBlockchain3)
             dev = network.accounts.add(addressR)
             amount = math.ceil(arrayDetail[2][2] * money)
             result = dev.transfer(Matrix[2][1], amount)
@@ -1157,11 +1161,11 @@ def BuyTokenBlockchain(Matrix, addressK, addressG, addressR, money):
     numTokens = arrayDetail[0][1] - money
 
     if randomNumList[0] == 0:
-        normalizeTokenBlockChain(Matrix, addressK, addressG, addressR, True, "Kovan", numTokens)
+        normalizeTokenBlockChain(Matrix, addressK, addressG, addressR, True, nameBlockchain1, numTokens)
     elif randomNumList[0] == 1:
-        normalizeTokenBlockChain(Matrix, addressK, addressG, addressR, True, "Goerli", numTokens)
+        normalizeTokenBlockChain(Matrix, addressK, addressG, addressR, True, nameBlockchain2, numTokens)
     else:
-        normalizeTokenBlockChain(Matrix, addressK, addressG, addressR, True, "Rinkeby", numTokens)
+        normalizeTokenBlockChain(Matrix, addressK, addressG, addressR, True, nameBlockchain3, numTokens)
 
     return total
 
@@ -1174,15 +1178,15 @@ def withdrawmoneyblockchain(Matrix, addressK, addressG, addressR, value, to, blo
 
     if blockchain == 1:
         num = 0
-        testnet = "kovan"
+        testnet = inputBlockchain1
         address = addressK
     elif blockchain == 2:
         num = 1
-        testnet = "goerli"
+        testnet = inputBlockchain2
         address = addressG
     else:
         num = 2
-        testnet = "rinkeby"
+        testnet = inputBlockchain3
         address = addressR
 
     connectNetwork(testnet)
@@ -1216,7 +1220,7 @@ def setPriceTokenBlockchain(Matrix, addressK, addressG, addressR, priceK, priceG
 
     while (n - f) > total:
         if n1 == -1:
-            connectNetwork('kovan')
+            connectNetwork(inputBlockchain1)
             dev = network.accounts.add(addressK)
             result = ProxyErc20.at(Matrix[0][1]).setPriceForToken.call(priceK, version, {'from': dev})
             result1 = ProxyErc20.at(Matrix[0][1]).setPriceForToken(priceK, version, {'from': dev})
@@ -1229,7 +1233,7 @@ def setPriceTokenBlockchain(Matrix, addressK, addressG, addressR, priceK, priceG
                 n1 = -1
 
         if n2 == -1:
-            connectNetwork('goerli')
+            connectNetwork(inputBlockchain2)
             dev = network.accounts.add(addressG)
             result = ProxyErc20.at(Matrix[1][1]).setPriceForToken.call(priceG, version, {'from': dev})
             result1 = ProxyErc20.at(Matrix[1][1]).setPriceForToken(priceG, version, {'from': dev})
@@ -1242,7 +1246,7 @@ def setPriceTokenBlockchain(Matrix, addressK, addressG, addressR, priceK, priceG
                 n2 = -1
 
         if n3 == -1:
-            connectNetwork('rinkeby')
+            connectNetwork(inputBlockchain3)
             dev = network.accounts.add(addressR)
             result = ProxyErc20.at(Matrix[2][1]).setPriceForToken.call(priceR, version, {'from': dev})
             result1 = ProxyErc20.at(Matrix[2][1]).setPriceForToken(priceR, version, {'from': dev})
@@ -1276,7 +1280,7 @@ def setNumTokenBlockchain(Matrix, addressK, addressG, addressR, num):
 
     while (n - f) > total:
         if n1 == -1:
-            connectNetwork('kovan')
+            connectNetwork(inputBlockchain1)
             dev = network.accounts.add(addressK)
             kovanbool = ProxyErc20.at(Matrix[0][1]).setTokens.call(num, version, {'from': dev})
             result1 = ProxyErc20.at(Matrix[0][1]).setTokens(num, version, {'from': dev})
@@ -1289,7 +1293,7 @@ def setNumTokenBlockchain(Matrix, addressK, addressG, addressR, num):
                 n1 = -1
 
         if n2 == -1:
-            connectNetwork('goerli')
+            connectNetwork(inputBlockchain2)
             dev = network.accounts.add(addressG)
             goerlibool = ProxyErc20.at(Matrix[1][1]).setTokens.call(num, version, {'from': dev})
             result1 = ProxyErc20.at(Matrix[1][1]).setTokens(num, version, {'from': dev})
@@ -1302,7 +1306,7 @@ def setNumTokenBlockchain(Matrix, addressK, addressG, addressR, num):
                 n2 = -1
 
         if n3 == -1:
-            connectNetwork('rinkeby')
+            connectNetwork(inputBlockchain3)
             dev = network.accounts.add(addressR)
             rinkbool = ProxyErc20.at(Matrix[2][1]).setTokens.call(num, version, {'from': dev})
             result1 = ProxyErc20.at(Matrix[2][1]).setTokens(num, version, {'from': dev})
